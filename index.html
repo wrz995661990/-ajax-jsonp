@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<script type="text/javascript">
+
+		var http = {
+
+			getAjaxData: function( jsonObj ){
+				var urlData = "";
+				var arr=[];
+				for(var i in jsonObj){
+					var strs=i+"="+jsonObj[i];
+					arr.push(strs);
+				}
+				urlData=arr.join("&");
+				return urlData;
+			},
+
+			creatHttp : function( url, type, data, success, error ){
+				var data = this.getAjaxData(data);
+
+				var xhr = null;
+				if (window.XMLHttpRequest) {
+					xhr = new XMLHttpRequest;
+				}else{
+					xhr = new ActiveXObject("Microsoft.XMLHttp");
+				};
+
+				if( type == "GET" ){
+					xhr.open(type,url+"?"+data,true);
+					xhr.send();
+				}else if(type == "POST"){
+					
+					xhr.open(type,url,true);
+					xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=gb2312");
+					xhr.send( data );
+				}
+
+				xhr.onreadystatechange = function(){
+					if (xhr.readyState== 4 && xhr.status==200) {
+						success( xhr.responseText )
+					}else if( xhr.readyState == 4 && xhr.status!=200){
+						error( xhr.statusText )
+					}
+				}
+
+
+			},
+
+			get : function( url,data,success,error ){
+
+				this.creatHttp(
+					url,
+					"GET",
+					data,
+					success,
+					error
+				)
+
+			},
+
+			post: function( url,data,success,error ){
+				this.creatHttp(
+					url,
+					"POST",
+					data,
+					success,
+					error
+				)
+			},
+
+			jsonp: function( url,data,success,error ){
+				var data = this.getAjaxData(data);
+				var scriptEle = document.createElement("script");
+				
+				var callbackName = "cb"+(+new Date())
+				window[ callbackName ] = function(data){
+
+					success( data );
+					window[ callbackName ] = null;
+					document.body.removeChild(scriptEle);
+				};
+
+				scriptEle.src = url+"?"+data+"&callback="+callbackName;
+				document.body.appendChild(scriptEle)
+			}
+
+		};
+
+
+
+
+		http.get("http://localhost:521/ajax/data.php",{
+			"name" : "aaaa",
+			"age" : 100
+		},function( data ){
+			console.log(data)
+		},function( res ){
+			console.log( res )
+		})
+
+
+	</script>
+</body>
+</html>
